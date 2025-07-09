@@ -1,24 +1,67 @@
+import os
 from flask import Flask, request, render_template
+import openai
 
 app = Flask(__name__)
 
-# ダミーの学校データ
-dummy_schools = [
-    {"name": "架空学園中学校", "area": "東京都千代田区", "feature": "最先端のICT教育が特徴です。"},
-    {"name": "空想義塾高等学校", "area": "東京都渋谷区", "feature": "グローバルな視野を育む国際交流が盛んです。"},
-    {"name": "夢見台小学校", "area": "東京都世田谷区", "feature": "自然豊かな環境でのびのびと学べます。"},
-]
+# ★★★★★ ここにあなたのAPIキーを設定してください ★★★★★
+# Railwayの環境変数からAPIキーを読み込むのが一番安全です
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    recommended_schools = []
+    # POSTリクエスト（＝フォームが送信された）の場合
     if request.method == 'POST':
-        # 本当はここでAIレコメンドをするが、今はダミーデータを返すだけ
-        area = request.form.get('area')
-        if area == "東京都":
-            recommended_schools = dummy_schools
+        try:
+            # フォームからユーザーの入力内容を取得
+            area = request.form.get('area')
+            policy = request.form.get('policy')
+            feature = request.form.get('feature')
 
-    return render_template('index.html', schools=recommended_schools)
+            # AIへの指示（プロンプト）を作成
+            prompt = f"""
+            あなたは経験豊富な進路指導アドバイザーです。
+            以下の条件に基づいて、日本の東京都内にある架空の学校を3つ提案してください。
+            それぞれの学校について、ユニークで魅力的な名前と、具体的な特徴を考えてください。
+
+            # 条件
+            - 地域: {area}
+            - 親の教育方針: {policy}
+            - 学校に求める特徴: {feature}
+
+            # 出力形式（必ずこの形式に従ってください）
+            [
+                {{"name": "学校名1", "area": "地域1", "feature": "特徴1"}},
+                {{"name": "学校名2", "area": "地域2", "feature": "特徴2"}},
+                {{"name": "学校名3", "area": "地域3", "feature": "特徴3"}}
+            ]
+            """
+
+            # OpenAI APIを呼び出す
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "あなたは最高の進路アドバイザーです。"},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            # AIからの回答を処理
+            # response_text は JSON 形式の文字列なので、Pythonのリストに変換する必要がある
+            import json
+            recommended_schools = json.loads(response.choices[0].message['content'])
+            
+            # 結果をWebページに渡して表示
+            return render_template('index.html', schools=recommended_schools, user_inputs=request.form)
+
+        except Exception as e:
+            # エラーが発生した場合、エラーメッセージを表示する
+            error_message = f"AIとの通信中にエラーが発生しました: {e}"
+            return render_template('index.html', error=error_message)
+
+    # GETリクエスト（＝初めてページを開いた）の場合
+    return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Railwayでは使われないが、ローカルでのテスト用に残しておく
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
