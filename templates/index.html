@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学校レコメンドアプリ</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .container { max-width: 600px; margin: 0 auto; padding: 1em; border: 1px solid #ccc; border-radius: 5px; }
+        .form-group { margin-bottom: 1em; }
+        input[type="text"] { width: 80%; padding: 8px; }
+        input[type="submit"] { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .school-list { margin-top: 2em; }
+        .school-item { border-bottom: 1px solid #eee; padding-bottom: 1em; margin-bottom: 1em; }
+        h2 { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>AI 小学校・中学校えらび</h2>
+        <form method="post">
+            <div class="form-group">
+                <label for="area">地域を入力してください（例：東京都）</label><br>
+                <input type="text" id="area" name="area" value="東京都">
+            </div>
+            <input type="submit" value="おすすめの学校を探す">
+        </form>
+
+        {% if schools %}
+        <div class="school-list">
+            <h3>おすすめの学校はこちらです</h3>
+            {% for school in schools %}
+            <div class="school-item">
+                <h4>{{ school.name }}</h4>
+                <p><strong>場所:</strong> {{ school.area }}</p>
+                <p><strong>特徴:</strong> {{ school.feature }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
