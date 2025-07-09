@@ -4,15 +4,13 @@ FROM python:3.10-slim
 # 2. 作業ディレクトリを設定
 WORKDIR /app
 
-# 3. 必要な部品リストをコピー
-COPY main.py templates/ ./
-COPY templates/ ./templates/
+# 3. リポジトリのすべてのファイルを、この作業ディレクトリにコピーする
+# (main.py, templatesフォルダなどが全部コピーされる、一番確実な方法です)
+COPY . .
 
-# 4. 必要な部品（Flaskとgunicornとopenai）をインストール ★★★ openaiを追加 ★★★
-RUN pip install Flask gunicorn openai
+# 4. 必要な部品（Flask, gunicorn, openai）をインストールする
+RUN pip install --no-cache-dir Flask gunicorn openai
 
-# 5. アプリが使うドア（ポート）を知らせる
-EXPOSE 8080
-
-# 6. アプリを起動するコマンド（環境変数を読み込む）
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 main:app
+# 5. アプリを起動するコマンド
+# (Railwayが自動で$PORTを設定してくれるので、それに合わせます)
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "main:app"]
