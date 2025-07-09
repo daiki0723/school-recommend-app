@@ -8,8 +8,8 @@ WORKDIR /app
 COPY main.py templates/ ./
 COPY templates/ ./templates/
 
-# 4. 必要な部品（Flaskとgunicorn）をインストール
-RUN pip install Flask gunicorn
+# 4. 必要な部品（Flaskとgunicornとopenai）をインストール ★★★ openaiを追加 ★★★
+RUN pip install Flask gunicorn openai
 
 # 5. アプリが使うドア（ポート）を知らせる
 EXPOSE 8080
